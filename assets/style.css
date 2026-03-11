@@ -1,0 +1,161 @@
+body {
+    background: #1e1e2f;
+    color: #e0e6f2;
+    font-family: 'Segoe UI', sans-serif;
+    padding: 30px;
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+}
+
+.card {
+    background: #2c2c3c;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+}
+
+h1 {
+    text-align: center;
+    color: #0ea5e9;
+    margin-bottom: 20px;
+}
+
+.w-100 {
+    width: 100%;
+}
+
+input, button {
+
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 6px;
+    font-size: 16px;
+}
+
+input[type=number] {
+    width: 80px;
+    display: inline-block;
+    margin-right: 10px;
+}
+
+button {
+    background: #0ea5e9;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    margin-top: 5px;
+}
+
+button:hover {
+    background: #0284c7;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 10px;
+}
+
+th, td {
+    border: 1px solid #555;
+    padding: 8px;
+    text-align: center;
+    font-family: monospace;
+}
+
+.cell-1 {
+    background: #22c55e;
+    color: black;
+    font-weight: bold;
+}
+
+.cell-0 {
+    background: #475569;
+    color: white;
+}
+
+.highlight-reflexive {
+    background: #0ea5e9 !important;
+    font-weight: bold;
+    color: black;
+}
+
+.highlight-antisymmetric {
+    background: #facc15 !important;
+    font-weight: bold;
+    color: black;
+}
+
+.highlight-transitive {
+    background: #ef4444 !important;
+    font-weight: bold;
+    color: white;
+}
+
+.log {
+    background: #111827;
+    padding: 12px;
+    border-radius: 6px;
+    max-height: 350px;
+    overflow-y: auto;
+    font-family: monospace;
+    font-size: 14px;
+    white-space: pre;
+}
+
+.info {
+    color: #0ea5e9;
+    font-weight: bold;
+}
+
+.pass {
+    color: #22c55e;
+    font-weight: bold;
+}
+
+.fail {
+    color: #ef4444;
+    font-weight: bold;
+}
+
+.small-matrix {
+    display: inline-block;
+    margin: 5px;
+    border: 1px solid #555;
+}
+
+.small-matrix td, .small-matrix th {
+    padding: 2px;
+    font-size: 12px;
+}
+
+.speed-control label {
+    margin-right: 10px;
+}
+
+.input-group {
+    display: grid;
+    grid-template-columns: auto auto;
+    column-gap: 1em;
+}
+
+.g-3 {
+    column-gap: 16px;
+}
+
+.mt-2 {
+    margin-top: 2em;
+}
+
+.text-valid {
+    color: green;
+}
+
+.text-invalid {
+    color: red;
+}
