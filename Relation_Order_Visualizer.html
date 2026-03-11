@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Order Relations Visualization</title>
+  <style>
+      body {
+          background: #1e1e2f;
+          color: #e0e6f2;
+          font-family: 'Segoe UI', sans-serif;
+          padding: 30px;
+      }
+
+      .container {
+          max-width: 900px;
+          margin: auto;
+      }
+
+      .card {
+          background: #2c2c3c;
+          border-radius: 8px;
+          padding: 20px;
+          margin-bottom: 20px;
+          box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+      }
+
+      h1 {
+          text-align: center;
+          color: #0ea5e9;
+          margin-bottom: 20px;
+      }
+
+      .w-100 {
+          width: 100%;
+      }
+
+      input, button {
+
+          padding: 10px;
+          margin-top: 10px;
+          border-radius: 6px;
+          font-size: 16px;
+      }
+
+      input[type=number] {
+          width: 80px;
+          display: inline-block;
+          margin-right: 10px;
+      }
+
+      button {
+          background: #0ea5e9;
+          color: white;
+          border: none;
+          cursor: pointer;
+          font-weight: 600;
+          margin-top: 5px;
+      }
+
+      button:hover {
+          background: #0284c7;
+      }
+
+      table {
+          border-collapse: collapse;
+          width: 100%;
+          margin-top: 10px;
+      }
+
+      th, td {
+          border: 1px solid #555;
+          padding: 8px;
+          text-align: center;
+          font-family: monospace;
+      }
+
+      .cell-1 {
+          background: #22c55e;
+          color: black;
+          font-weight: bold;
+      }
+
+      .cell-0 {
+          background: #475569;
+          color: white;
+      }
+
+      .highlight-reflexive {
+          background: #0ea5e9 !important;
+          font-weight: bold;
+          color: black;
+      }
+
+      .highlight-antisymmetric {
+          background: #facc15 !important;
+          font-weight: bold;
+          color: black;
+      }
+
+      .highlight-transitive {
+          background: #ef4444 !important;
+          font-weight: bold;
+          color: white;
+      }
+
+      .log {
+          background: #111827;
+          padding: 12px;
+          border-radius: 6px;
+          max-height: 350px;
+          overflow-y: auto;
+          font-family: monospace;
+          font-size: 14px;
+          white-space: pre;
+      }
+
+      .info {
+          color: #0ea5e9;
+          font-weight: bold;
+      }
+
+      .pass {
+          color: #22c55e;
+          font-weight: bold;
+      }
+
+      .fail {
+          color: #ef4444;
+          font-weight: bold;
+      }
+
+      .small-matrix {
+          display: inline-block;
+          margin: 5px;
+          border: 1px solid #555;
+      }
+
+      .small-matrix td, .small-matrix th {
+          padding: 2px;
+          font-size: 12px;
+      }
+
+      .speed-control label {
+          margin-right: 10px;
+      }
+
+      .input-group {
+          display: grid;
+          grid-template-columns: auto auto;
+          column-gap: 1em;
+      }
+
+      .g-3 {
+          column-gap: 16px;
+      }
+
+      .mt-2 {
+          margin-top: 2em;
+      }
+
+      .text-valid {
+          color: green;
+      }
+
+      .text-invalid {
+          color: red;
+      }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <h1>Order Relation Visualization</h1>
+
+
+  <div class="card">
+    <p>Enter a set of elements (example: 1,2,3 or a,b,c):</p>
+    <div class="input-group">
+      <input id="inputSet" placeholder="1,2,3">
+      <div class="speed-control">
+        <label for="speedInput">Speed (seconds):</label>
+        <input type="number" id="speedInput" value="1" min="0" step="0.1">
+      </div>
+    </div>
+    <div class="mt-2">
+      <button class="w-100" onclick="performAnalysis()">Run Analysis</button>
+      <button class="w-100" id="pauseBtn" onclick="togglePause()">Pause</button>
+    </div>
+  </div>
+
+  <div class="card" id="matrixContainer"></div>
+  <div class="card log" id="logContainer"></div>
+  <div class="card" id="resultContainer"></div>
+  <div class="card" id="allRelationsContainer"></div>
+  <footer>
+    <p>Student: Gaita Marian Gabriel</p>
+    <p>Faculty: University of Craiova, Faculty of Sciences</p>
+    <p>Program: MMIA Master’s Program</p>
+  </footer>
+  <script>
+
+      // sa fac si pentru relatiile de echivalenta
+      // sa scot din program lista cu matricele de ordine
+
+      let matrixCells = [];
+      let isPaused = false;
+
+      function sleep(ms) {
+          return new Promise(resolve => {
+              function check() {
+                  if (!isPaused) {
+                      resolve();
+                  } else {
+                      setTimeout(check, 100);
+                  }
+              }
+
+              setTimeout(check, ms);
+          });
+      }
+
+      function togglePause() {
+          isPaused = !isPaused;
+          document.getElementById("pauseBtn").textContent = isPaused ? "Resume" : "Pause";
+      }
+
+      function getSpeedMs() {
+          const val = parseFloat(document.getElementById("speedInput").value);
+          return isNaN(val) || val < 0 ? 1000 : val * 1000;
+      }
+
+      function buildMatrix(elements, matrix) {
+          matrixCells = [];
+          let html = "<h5>Relation Matrix</h5><table><thead><tr><th></th>";
+          for (let i = 0; i < elements.length; i++) {
+              html += `<th>${elements[i]}</th>`;
+          }
+          html += "</tr></thead><tbody>";
+          for (let i = 0; i < elements.length; i++) {
+              html += `<tr><th>${elements[i]}</th>`;
+              matrixCells[i] = [];
+              for (let j = 0; j < matrix[i].length; j++) {
+                  let val = matrix[i][j];
+                  html += `<td class="cell-${val}" id="cell-${i}-${j}">${val}</td>`;
+                  matrixCells[i][j] = `cell-${i}-${j}`;
+              }
+              html += "</tr>";
+          }
+          html += "</tbody></table>";
+          return html;
+      }
+
+      function highlight(cells, type) {
+          for (let i = 0; i < cells.length; i++) {
+              let [x, y] = cells[i];
+              document.getElementById(`cell-${x}-${y}`).classList.add(type);
+          }
+      }
+
+      function clearHighlights() {
+          document.querySelectorAll('td').forEach(td => {
+              td.classList.remove('highlight-reflexive', 'highlight-antisymmetric', 'highlight-transitive');
+          });
+      }
+
+      function log(msg, type = "info") {
+          let container = document.getElementById("logContainer");
+          let line = document.createElement("div");
+          line.className = type;
+          line.textContent = msg;
+          container.appendChild(line);
+          container.scrollTop = container.scrollHeight;
+      }
+
+      function matrixToString(matrix) {
+          return matrix.map(row => row.join(" ")).join("\n");
+      }
+
+      /**
+       * Checks whether a relation is reflexive.
+       * A relation is reflexive if every element a in the set
+       * has the pair (a, a) present in the relation matrix.
+       *
+       * The function iterates through the diagonal of the matrix
+       * and verifies that each diagonal element is 1.
+       *
+       * @async
+       * @function checkReflexivity
+       * @param {Array<string|number>} elements - The elements of the set.
+       * @param {number[][]} matrix - Adjacency matrix representing the relation (values 0 or 1).
+       * @returns {Promise<boolean>} Resolves to true if the relation is reflexive, otherwise false.
+       *
+       * @example
+       * const elements = ['a', 'b', 'c'];
+       * const matrix = [
+       *   [1,0,1],
+       *   [0,1,0],
+       *   [0,1,1]
+       * ];
+       *
+       * const result = await checkReflexivity(elements, matrix);
+       * console.log(result); // true
+       */
+      async function checkReflexivity(elements, matrix) {
+          log("Checking Reflexivity...", "info");
+          let ok = true;
+
+          for (let i = 0; i < elements.length; i++) {
+              clearHighlights();
+              highlight([[i, i]], "highlight-reflexive");
+              await sleep(getSpeedMs());
+
+              if (matrix[i][i] === 1) {
+                  log(`PASS: (${elements[i]},${elements[i]}) exists`, "pass");
+              } else {
+                  log(`FAIL: (${elements[i]},${elements[i]}) missing!`, "fail");
+                  ok = false;
+              }
+          }
+
+          return ok;
+      }
+
+      /**
+       * Checks whether a relation is antisymmetric.
+       * A relation is antisymmetric if for any two different elements a and b,
+       * the pairs (a, b) and (b, a) cannot both exist at the same time.
+       *
+       * The function compares matrix[i][j] with matrix[j][i] for all i ≠ j.
+       *
+       * @async
+       * @function checkAntisymmetry
+       * @param {Array<string|number>} elements - The elements of the set.
+       * @param {number[][]} matrix - Adjacency matrix representing the relation (values 0 or 1).
+       * @returns {Promise<boolean>} Resolves to true if the relation is antisymmetric, otherwise false.
+       *
+       * @example
+       * const elements = ['a', 'b'];
+       * const matrix = [
+       *   [1,1],
+       *   [0,1]
+       * ];
+       *
+       * const result = await checkAntisymmetry(elements, matrix);
+       * console.log(result); // true
+       */
+      async function checkAntisymmetry(elements, matrix) {
+          log("Checking Antisymmetry...", "info");
+          let ok = true;
+
+          for (let i = 0; i < elements.length; i++) {
+              for (let j = 0; j < elements.length; j++) {
+                  if (i !== j) {
+                      clearHighlights();
+                      highlight([[i, j], [j, i]], "highlight-antisymmetric");
+                      await sleep(getSpeedMs());
+
+                      if (matrix[i][j] === 1 && matrix[j][i] === 1) {
+                          log(`FAIL: (${elements[i]},${elements[j]}) and (${elements[j]},${elements[i]}) exist → relation is not antisymmetric`, "fail");
+                          ok = false;
+                      } else {
+                          log(`PASS: (${elements[i]},${elements[j]}) and (${elements[j]},${elements[i]}) OK`, "pass");
+                      }
+                  }
+              }
+          }
+
+          return ok;
+      }
+
+      /**
+       * Checks whether a relation is transitive.
+       * A relation is transitive if whenever (a, b) and (b, c) exist,
+       * the pair (a, c) must also exist.
+       *
+       * The function searches for all pairs (i, j) and (j, k) in the matrix
+       * and verifies that (i, k) is also present.
+       *
+       * @async
+       * @function checkTransitivity
+       * @param {Array<string|number>} elements - The elements of the set.
+       * @param {number[][]} matrix - Adjacency matrix representing the relation (values 0 or 1).
+       * @returns {Promise<boolean>} Resolves to true if the relation is transitive, otherwise false.
+       *
+       * @example
+       * const elements = ['a','b','c'];
+       * const matrix = [
+       *   [1,1,1],
+       *   [0,1,1],
+       *   [0,0,1]
+       * ];
+       *
+       * const result = await checkTransitivity(elements, matrix);
+       * console.log(result); // true
+       */
+      async function checkTransitivity(elements, matrix) {
+          log("Checking Transitivity...", "info");
+          let ok = true;
+
+          for (let i = 0; i < elements.length; i++) {
+              for (let j = 0; j < elements.length; j++) {
+                  for (let k = 0; k < elements.length; k++) {
+
+                      if (matrix[i][j] === 1 && matrix[j][k] === 1) {
+                          clearHighlights();
+                          highlight([[i, j], [j, k], [i, k]], "highlight-transitive");
+                          await sleep(getSpeedMs());
+
+                          if (matrix[i][k] === 0) {
+                              log(`FAIL: (${elements[i]},${elements[j]}),(${elements[j]},${elements[k]}) exist but (${elements[i]},${elements[k]}) missing → transitivity violated`, "fail");
+                              ok = false;
+                          } else {
+                              log(`PASS: (${elements[i]},${elements[j]}),(${elements[j]},${elements[k]}),(${elements[i]},${elements[k]}) OK`, "pass");
+                          }
+                      }
+                  }
+              }
+          }
+
+          clearHighlights();
+          return ok;
+      }
+
+      function displayMatrixTable(elements, matrix, index) {
+          let html = `<div><b>Matrix #${index + 1}:</b></div><table class="small-matrix"><tbody>`;
+          for (let i = 0; i < matrix.length; i++) {
+              html += "<tr>";
+              for (let j = 0; j < matrix[i].length; j++) {
+                  html += `<td class="cell-${matrix[i][j]}">${matrix[i][j]}</td>`;
+              }
+              html += "</tr>";
+          }
+          html += "</tbody></table>";
+          return html;
+      }
+
+      async function performAnalysis() {
+          const input = document.getElementById("inputSet").value;
+          if (!input.trim()) {
+              alert("Enter a valid set!");
+              return;
+          }
+          const elements = input.split(",").map(x => x.trim());
+          const n = elements.length;
+          const max = 1 << (n * n);
+          document.getElementById("logContainer").innerHTML = "";
+          document.getElementById("allRelationsContainer").innerHTML = "";
+          document.getElementById("matrixContainer").innerHTML = "";
+          let validCount = 0;
+
+          for (let mask = 0; mask < max; mask++) {
+              let matrix = Array.from({length: n}, () => Array(n).fill(0));
+              let bit = 0;
+              for (let i = 0; i < n; i++) {
+                  for (let j = 0; j < n; j++) {
+                      if ((mask & (1 << bit)) !== 0) matrix[i][j] = 1;
+                      bit++;
+                  }
+              }
+
+              log(`\n=== Matrix #${mask + 1} ===`, "info");
+              log(matrixToString(matrix), "info");
+
+              document.getElementById("matrixContainer").innerHTML = buildMatrix(elements, matrix);
+
+              const reflexive = await checkReflexivity(elements, matrix);
+              const antisymmetric = await checkAntisymmetry(elements, matrix);
+              const transitive = await checkTransitivity(elements, matrix);
+
+              let resultText = reflexive && antisymmetric && transitive ? "<span class=\"text-valid\">[Valid]</span> Valid Order Relation" : "<span class=\"text-invalid\">[Invalid]</span> Not an Order Relation";
+              document.getElementById("resultContainer").innerHTML = `<b>Matrix #${mask + 1}: ${resultText}</b>`;
+              if (reflexive && antisymmetric && transitive) validCount++;
+
+              // Add pretty table for valid matrices
+              if (reflexive && antisymmetric && transitive) {
+                  document.getElementById("allRelationsContainer").innerHTML += displayMatrixTable(elements, matrix, mask);
+              }
+
+              log(`=== End Matrix #${mask + 1} ===\n`, "info");
+              await sleep(getSpeedMs());
+          }
+
+          document.getElementById("allRelationsContainer").innerHTML += `<div>Total valid order relations: <b>${validCount}</b></div>`;
+      }
+  </script>
+</div>
+</body>
+</html>
